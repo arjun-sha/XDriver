@@ -1,20 +1,16 @@
-from setuptools import setup, find_packages
-
+from setuptools import find_packages, setup
 
 setup(
     name="x_driver",
     author="Arjun Shankar",
     author_email="arjun.sha2425@gmail.com",
-    description="Patched playwright driver",
+    description="Patched playwright driver for block free web scraping!",
     long_description=open("README.md").read(),
-    long_description_content_type="text/markdown",
     license="MIT",
-    version=" ".join([i.strip() for i in open("VERSION.txt")]).strip(),
     packages=find_packages(),
     include_package_data=True,
-    entry_points={
-        "console_scripts": [
-            "x_driver=x_driver.__main__:activator",
-        ],
-    },
+    long_description_content_type="text/markdown",
+    keywords=["Playwright", "Cloudflare", "Kasada", "Datadome"],
+    version=" ".join([i.strip() for i in open("VERSION.txt")]).strip(),
+    entry_points={"console_scripts": ["x_driver=x_driver.__main__:activator"]}
 )
