@@ -44,6 +44,8 @@ $ x_driver activate
 
 This command modifies Playwright’s source code to bypass common bot detection systems, making your scraping scripts more undetectable.
 
+---
+
 ### Running playwright
 
 <div align="center" style="text-align: center --force;">
@@ -76,6 +78,8 @@ asyncio.run(main())
 ```
 
 XDriver ensures your Playwright instance is patched for stealth, allowing you to scrape without getting blocked
+
+---
 
 ### Deactivate XDriver
 
