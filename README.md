@@ -1,5 +1,6 @@
 <div align="center" style="text-align: center --force;">
-  <h1 align="center" style="text-align: center --force; "><a href='https://playwright.dev'>X</a>Driver 🎭</h1>
+  <h1 align="center" style="text-align: center --force; margin-bottom: 10px;"><a href='https://playwright.dev'>X</a>Driver 🎭</h1>
+
   <a href="https://pypi.org/">
     <img src="https://img.shields.io/badge/pypi%20package-v0.0.1-orange" alt="PyPI version">
   </a>
@@ -18,8 +19,8 @@
 </div>
 
 <div align="center" style="text-align: center --force;">
-<h4 align="center">Scrape the Web Without Getting Blocked – Playwright Anti-Block Patch Tool</h4>
-<p><b>XDriver</b> patches Playwright with a single command to bypass anti-bot systems and make your scraping sessions block-free. It modifies driver, CDP connections and python wrapper, helping you avoid detection. ❤️</p>
+<h4 align="center" style="margin-top: 10px; margin-bottom: 10px;">Scrape the Web Without Getting Blocked – Playwright Anti-Block Patch Tool ❤️</h4>
+<p style="margin-top: px;"><b>XDriver</b> patches Playwright with a single command to bypass anti-bot systems and make your scraping sessions block-free. It modifies driver, CDP connections and python wrapper, helping you avoid detection.</p>
 </div>
 
 
@@ -46,7 +47,7 @@ This command modifies Playwright’s source code to bypass common bot detection 
 ### Running playwright
 
 <div align="center" style="text-align: center --force;">
-<img src="assets/banner.png" style="width: 80%; height: auto;" alt="Logo" />
+<img src="assets/banner.png" style="width: 70%; height: auto;" alt="Logo" />
 </div>
 
 Once XDriver is activated, you can **run your Playwright scripts just like you normally would**—no additional changes needed.
