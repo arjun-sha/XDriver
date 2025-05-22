@@ -104,8 +104,10 @@ This safely reverts all changes made by XDriver, returning Playwright to its def
 | [**JA3er Bot Detector**](https://ja3er.com/) | ✅ No Tracking | [**AmIUnique**](https://amiunique.org/fp) | ✅ No Unique |
 | [**Cover Your Tracks (EFF)**](https://coveryourtracks.eff.org/) | ✅ Strong Protection |  |  |
 
+---
+
 <div align="center">
-    <h4>Let's Connect</h4>
+    <h4>💬 Let's Connect</h4>
   <a href="https://www.linkedin.com/in/arjunshankar1/" target="_blank">
     <img src="https://skillicons.dev/icons?i=linkedin" width=37 />
   </a>
