@@ -1,6 +1,8 @@
-from x_driver.utils import validate_playwright, get_playwright_path, load_config
 import os
 import shutil
+
+from x_driver.utils import (get_playwright_path, load_config,
+                            validate_playwright)
 
 
 class ActivatorScript:
@@ -11,38 +13,46 @@ class ActivatorScript:
         and modify it with the patched files.
         """
 
+        config = load_config()
         PLAYWRIGHT_PATH = get_playwright_path()
         CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-        config = load_config()
         for filename, filepath in config.items():
-            # Backup the orginal source file
-            CURRENT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, filename)
-            BACKUP_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}")
-            os.rename(CURRENT_FILEPATH, BACKUP_FILEPATH)
-
-            # Patching
             PATCH_FILEPATH = os.path.join(CURRENT_DIR, "bundles/driver", filename)
+            CURRENT_FILEPATH = os.path.join(
+                PLAYWRIGHT_PATH, "driver", filepath, filename
+            )
+            BACKUP_FILEPATH = os.path.join(
+                PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}"
+            )
+
+            os.rename(CURRENT_FILEPATH, BACKUP_FILEPATH)
             shutil.copy(PATCH_FILEPATH, CURRENT_FILEPATH)
 
-        # Patching root file
-        INIT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "__init__.py")
-        with open(INIT_FILEPATH, 'r') as file:
-            original_contents = file.read()
-
-        patched_init = (
-            'print("Running inside the XDriver session")\n'
-            + original_contents
-        )
-        with open(INIT_FILEPATH, 'w') as file:
-            file.write(patched_init)
+        self._init_patcher(mode="patch")
 
     def _unpatch(self):
         """
         Core unpatcher, delete the patched files
         and replace it with the backuped files.
         """
-        pass
+        config = load_config()
+        PLAYWRIGHT_PATH = get_playwright_path()
+
+        for filename, filepath in config.items():
+            CURRENT_FILEPATH = os.path.join(
+                PLAYWRIGHT_PATH, "driver", filepath, filename
+            )
+            BACKUP_FILEPATH = os.path.join(
+                PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}"
+            )
+            if not os.path.exists(BACKUP_FILEPATH):
+                continue
+
+            os.remove(CURRENT_FILEPATH)
+            os.rename(BACKUP_FILEPATH, CURRENT_FILEPATH)
+
+        self._init_patcher(mode="unpatch")
 
     def activate(self, force: bool = False):
         """
@@ -56,13 +66,13 @@ class ActivatorScript:
             return valid, message
 
         # Returning True if already patched.
-        patched = self.status()
-        if patched:
+        patched, status_text = self.status()
+        if patched and status_text != "Corrupted":
             return True, "Already active"
 
         self._patch()
-        patched = self.status()
-        if not patched:
+        patched, status_text = self.status()
+        if not patched and status_text != "Corrupted":
             return False, "Faled to activate"
 
         return True, "Activated"
@@ -74,16 +84,55 @@ class ActivatorScript:
         """
 
         # Checked status
-        patched = self.status()
-        if not patched:
+        patched, status_text = self.status()
+        if not patched and status_text != "Corrupted":
             return False, "Not activated"
 
         self._unpatch()
-        patched = self.status()
-        if patched:
+        patched, status_text = self.status()
+        if patched and status_text != "Corrupted":
             return False, "Failed to deactivate"
 
         return True, "Deactivated"
 
     def status(self):
-        pass
+
+        config = load_config()
+        PLAYWRIGHT_PATH = get_playwright_path()
+
+        all_status = []
+
+        for filename, filepath in config.items():
+            BACKUP_FILEPATH = os.path.join(
+                PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}"
+            )
+            if os.path.exists(BACKUP_FILEPATH):
+                all_status.append(True)
+                continue
+            all_status.append(False)
+
+        if all(all_status):
+            return True, "Activated"
+
+        if not any(all_status):
+            return False, "Deactivated"
+
+        return False, "Corrupted"
+
+    def _init_patcher(self, mode):
+        PLAYWRIGHT_PATH = get_playwright_path()
+        INIT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "__init__.py")
+        patch_line = 'print("Running inside the XDriver session")\n'
+
+        # Reading init file
+        with open(INIT_FILEPATH, "r") as file:
+            original_contents = file.read()
+
+        if mode == "patch":
+            modifed_content = patch_line + original_contents
+        else:
+            modifed_content = original_contents.replace(patch_line, "")
+
+        # Writing the init
+        with open(INIT_FILEPATH, "w") as file:
+            file.write(modifed_content)

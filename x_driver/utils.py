@@ -1,18 +1,22 @@
 from pathlib import Path
 import os
 import json
+from importlib.metadata import version
 
 
 def validate_playwright():
-    return
+    try:
+        import playwright
 
+    except ImportError:
+        return False, "Playwright not installed"
 
-def validate_activation():
-    return
+    supported_versions = ["1.52.0"]
+    playwright_version = version("playwright")
+    if playwright_version not in supported_versions:
+        return False, "Playwright version not compatibile with XDriver"
 
-        
-def load_json():
-    pass
+    return True, ""
 
 
 def load_config():
