@@ -1,24 +1,52 @@
 import argparse
-from x_driver.activator import Activator
+
+from x_driver.activator_script import Activator
+from x_driver.help_formatter import HelpFormatter, helper_art
+from x_driver.logger import logger
 
 
 def activator():
+    parser = argparse.ArgumentParser(
+        prog="x_driver", description=(helper_art), formatter_class=HelpFormatter
+    )
+    subparsers = parser.add_subparsers(dest="command", title="Commands")
 
-    activator = Activator()
+    # Activate
+    activate_parser = subparsers.add_parser(
+        "activate", help="Activate the XDriver", formatter_class=HelpFormatter
+    )
 
-    parser = argparse.ArgumentParser(prog="x_driver")
-    subparsers = parser.add_subparsers(dest="command")
+    # Force activate
+    activate_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force activation (override version checks)",
+    )
 
-    # Activate command
-    activate_parser = subparsers.add_parser("activate", help="Activate the driver")
-    activate_parser.set_defaults(func=activator.activate)
-
-    # Deactivate command
-    deactivate_parser = subparsers.add_parser("deactivate", help="Deactivate the driver")
-    deactivate_parser.set_defaults(func=activator.deactivate)
+    # Deactivate
+    deactivate_parser = subparsers.add_parser(
+        "deactivate", help="Deactivate the XDriver", formatter_class=HelpFormatter
+    )
 
     args = parser.parse_args()
-    if hasattr(args, "func"):
-        args.func()
+    activator = Activator()
+
+    if args.command == "activate":
+        status, message = activator.activate(force=args.force)
+        if not status:
+            logger.warning(message)
+        else:
+            logger.info(message)
+
+        if "not compatibile with XDriver" in message:
+            logger.warning("Tip: You can use the --force flag for forced activation.")
+
+    elif args.command == "deactivate":
+        status, message = activator.deactivate()
+        if not status:
+            logger.warning(message)
+        else:
+            logger.info(message)
+
     else:
         parser.print_help()
