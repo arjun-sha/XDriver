@@ -10,6 +10,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     long_description_content_type="text/markdown",
+    install_requires=["colorlog"],
     keywords=["Playwright", "Cloudflare", "Kasada", "Datadome"],
     version=" ".join([i.strip() for i in open("VERSION.txt")]).strip(),
     entry_points={"console_scripts": ["x_driver=x_driver.__main__:activator"]}
