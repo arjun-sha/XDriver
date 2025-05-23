@@ -1,5 +1,5 @@
 <div align="center" style="text-align: center --force;">
-  <h1 align="center" style="text-align: center --force; margin-bottom: 10px;"><a href='https://playwright.dev'>X</a>Driver 🎭</h1>
+  <h1 align="center" style="text-align: center --force; margin-bottom: 10px;"><a href='https://playwright.dev'>🎭X</a>Driver</h1>
 
   <a href="https://pypi.org/">
     <img src="https://img.shields.io/badge/pypi%20package-v0.0.1-orange" alt="PyPI version">
@@ -90,23 +90,6 @@ $ x_driver deactivate
 ```
 
 This safely reverts all changes made by XDriver, returning Playwright to its default configuration.
-
----
-
-## Performance  
-
-| Test                                      | Status                | Test                                      | Status                |
-|-------------------------------------------|-----------------------|-------------------------------------------|-----------------------|
-| [**CreepJS**](https://abrahamjuliot.github.io/creepjs/)  | ✅ 100% Anonymous | [**Cloudflare WAF**](https://www.cloudflare.com/zero-trust/interactive-demo/) | ✅ Passed |
-| [**Rebrowser Bot Detector**](https://bot-detector.rebrowser.net/) | ✅ Passed all tests | [**Cloudflare Turnstile**](https://nopecha.com/demo/turnstile) | ✅ Passed |
-| [**BrowserScan**](https://browserscan.net/) | ✅ 87% | [**Cloudflare Interstitial**](https://nopecha.com/demo) | ✅ Passed |
-| [**nopecha.com Turnstile**](https://nopecha.com/captcha/turnstile) | ✅ Passed | [**Kasada**](https://www.kasada.io/) | ✅ Passed |
-| **Datadome Interstitial** | ✅ Passed | **Perimeter X**  | ✅ Passed |
-| **Imperva** ([ticketmaster.com](https://www.ticketmaster.com/)) | ✅ Passed | [**Fingerprints.com**](https://fingerprint.com/products/bot-detection/) | ✅ Passed |
-| [**IP-API Bot Detection**](https://ip-api.com/) | ✅ Passed | [**Whoer.net**](https://whoer.net/) | ✅ High Anonymity |
-| [**IPQualityScore Bot Detection**](https://www.ipqualityscore.com/) | ✅ Passed | [**TLS Fingerprint Detection**](https://tls.browserleaks.com/) | ✅ No Anomalies |
-| [**JA3er Bot Detector**](https://ja3er.com/) | ✅ No Tracking | [**AmIUnique**](https://amiunique.org/fp) | ✅ No Unique |
-| [**Cover Your Tracks (EFF)**](https://coveryourtracks.eff.org/) | ✅ Strong Protection |  |  |
 
 ---
 

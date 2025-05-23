@@ -5,7 +5,7 @@ from x_driver.utils import (get_playwright_path, load_config,
                             validate_playwright)
 
 
-class ActivatorScript:
+class Activator:
 
     def _patch(self):
         """
@@ -19,12 +19,8 @@ class ActivatorScript:
 
         for filename, filepath in config.items():
             PATCH_FILEPATH = os.path.join(CURRENT_DIR, "bundles/driver", filename)
-            CURRENT_FILEPATH = os.path.join(
-                PLAYWRIGHT_PATH, "driver", filepath, filename
-            )
-            BACKUP_FILEPATH = os.path.join(
-                PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}"
-            )
+            CURRENT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, filename)
+            BACKUP_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}")
 
             os.rename(CURRENT_FILEPATH, BACKUP_FILEPATH)
             shutil.copy(PATCH_FILEPATH, CURRENT_FILEPATH)
@@ -40,12 +36,8 @@ class ActivatorScript:
         PLAYWRIGHT_PATH = get_playwright_path()
 
         for filename, filepath in config.items():
-            CURRENT_FILEPATH = os.path.join(
-                PLAYWRIGHT_PATH, "driver", filepath, filename
-            )
-            BACKUP_FILEPATH = os.path.join(
-                PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}"
-            )
+            CURRENT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, filename)
+            BACKUP_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}")
             if not os.path.exists(BACKUP_FILEPATH):
                 continue
 
@@ -73,7 +65,7 @@ class ActivatorScript:
         self._patch()
         patched, status_text = self.status()
         if not patched and status_text != "Corrupted":
-            return False, "Faled to activate"
+            return False, f"{status_text} - Faled to activate"
 
         return True, "Activated"
 
@@ -91,7 +83,7 @@ class ActivatorScript:
         self._unpatch()
         patched, status_text = self.status()
         if patched and status_text != "Corrupted":
-            return False, "Failed to deactivate"
+            return False, f"{status_text}, Failed to deactivate"
 
         return True, "Deactivated"
 
@@ -116,13 +108,12 @@ class ActivatorScript:
 
         if not any(all_status):
             return False, "Deactivated"
-
         return False, "Corrupted"
 
     def _init_patcher(self, mode):
         PLAYWRIGHT_PATH = get_playwright_path()
         INIT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "__init__.py")
-        patch_line = 'print("Running inside the XDriver session")\n'
+        patch_line = 'print("\033[92m[-] XDriver INFO: Session Active\033[0m")\n'
 
         # Reading init file
         with open(INIT_FILEPATH, "r") as file:

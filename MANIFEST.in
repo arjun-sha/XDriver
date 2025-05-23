@@ -1,3 +1,3 @@
 recursive-include x_driver *.json *.js
-recursive-include x_driver/patches *.js
-recursive-include x_driver/patches *.json
+recursive-include x_driver/bundles *.js
+recursive-include x_driver/bundles *.json

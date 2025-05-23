@@ -6,7 +6,7 @@ from importlib.metadata import version
 
 def validate_playwright():
     try:
-        import playwright
+        import playwright  # noqa
 
     except ImportError:
         return False, "Playwright not installed"
@@ -14,7 +14,11 @@ def validate_playwright():
     supported_versions = ["1.52.0"]
     playwright_version = version("playwright")
     if playwright_version not in supported_versions:
-        return False, "Playwright version not compatibile with XDriver"
+        return False, (
+            "Playwright version not compatibile with XDriver, "
+            f"Current version {playwright_version}, "
+            f"Recommended versions - {supported_versions}"
+        )
 
     return True, ""
 
