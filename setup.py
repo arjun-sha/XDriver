@@ -17,7 +17,7 @@ with open(os.path.join(BASE_DIR, "README.md")) as f:
 
 setup(
     name="x_driver",
-    version="1.0.1",
+    version="1.0.0",
     author="Arjun Shankar",
     author_email="arjun.sha2425@gmail.com",
     description="Patched playwright driver for block free web scraping!",

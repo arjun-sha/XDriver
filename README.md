@@ -23,7 +23,7 @@
 <p style="margin-top: px;"><b>XDriver</b> patches Playwright with a single command to bypass anti-bot systems and make your scraping sessions block-free. It modifies driver, CDP connections and python wrapper, helping you avoid detection.</p>
 </div>
 
-## Features (v1.0.1)
+## Features (v1.0.0)
 
 ### **Undetectable Browser for Web Scraping**
 - ✅ Runs in an isolated Service Worker scope for maximum stealth.
