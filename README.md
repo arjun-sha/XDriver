@@ -23,6 +23,31 @@
 <p style="margin-top: px;"><b>XDriver</b> patches Playwright with a single command to bypass anti-bot systems and make your scraping sessions block-free. It modifies driver, CDP connections and python wrapper, helping you avoid detection.</p>
 </div>
 
+## Features (v1.0.1)
+
+### **Undetectable Browser for Web Scraping**
+- ✅ Runs in an isolated Service Worker scope for maximum stealth.
+- ✅ Stealth-hardened Playwright browser at both JavaScript and C-level.
+- ✅ Effectively bypasses anti-bot systems such as Cloudflare WAF, Turnstile, Datadome, Kasada, and more.
+- ✅ Evades detection of headless mode execution.
+
+### **Advanced Playwright Leak Prevention**
+- ✅ CDP Connection Cloaking – Hides detection when Playwright connects via CDP.
+- ✅ Script Injection Concealment – Removes traces of __pwInitScripts and add_init_script().
+- ✅ Developer Tools Evasion – Undetectable even against vendors like Kasada.
+- ✅ WebRTC Leak Protection – Prevents IP leaks through WebRTC channels.
+- ✅ Binding & Exposure Hardening – Patches __pwBinding and exposeFunctionLeak.
+- ✅ Runtime Leak Fix – Resolves detection from runtimeEnable behavior.
+
+## Installation Guide
+
+> 🛈 **System Requirements**
+>
+> python >= 3.8.0
+>
+> Playwright Version - 1.52.0
+>
+>
 
 ## Getting Started
 
