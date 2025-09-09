@@ -21,9 +21,9 @@ if [ -z "$PLAYWRIGHT_HOST_PLATFORM_OVERRIDE" ]; then
   fi
 fi
 
-# 1. make sure to remove old stable if any.
-if dpkg --get-selections | grep -q "^microsoft-edge-stable[[:space:]]*install$" >/dev/null; then
-  apt-get remove -y microsoft-edge-stable
+# 1. make sure to remove old dev if any.
+if dpkg --get-selections | grep -q "^microsoft-edge-dev[[:space:]]*install$" >/dev/null; then
+  apt-get remove -y microsoft-edge-dev
 fi
 
 # 2. Install curl to download Microsoft gpg key
@@ -32,17 +32,11 @@ if ! command -v curl >/dev/null; then
   apt-get install -y curl
 fi
 
-# GnuPG is not preinstalled in slim images
-if ! command -v gpg >/dev/null; then
-  apt-get update
-  apt-get install -y gpg
-fi
-
 # 3. Add the GPG key, the apt repo, update the apt cache, and install the package
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.gpg
 install -o root -g root -m 644 /tmp/microsoft.gpg /etc/apt/trusted.gpg.d/
-sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-stable.list'
+sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list'
 rm /tmp/microsoft.gpg
-apt-get update && apt-get install -y microsoft-edge-stable
+apt-get update && apt-get install -y microsoft-edge-dev
 
-microsoft-edge-stable --version
+microsoft-edge-dev --version

@@ -12,19 +12,19 @@ class Activator:
         Core patcher, backup the orginal file,
         and modify it with the patched files.
         """
-
-        config = load_config()
         PLAYWRIGHT_PATH = get_playwright_path()
+        PACKAGE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "package")
+        NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node")
+        BACKUP_PACKAGE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "package_1")
+        BACKUP_NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node_1")
+        os.rename(PACKAGE_PATH, BACKUP_PACKAGE_PATH)
+        os.rename(NODE_PATH, BACKUP_NODE_PATH)
+
         CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-        for filename, filepath in config.items():
-            PATCH_FILEPATH = os.path.join(CURRENT_DIR, "bundles/driver", filename)
-            CURRENT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, filename)
-            BACKUP_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}")
-
-            os.rename(CURRENT_FILEPATH, BACKUP_FILEPATH)
-            shutil.copy(PATCH_FILEPATH, CURRENT_FILEPATH)
-
+        PATCH_PACKAGE = os.path.join(CURRENT_DIR, "bundles", "package")
+        PATCH_NODE = os.path.join(CURRENT_DIR, "bundles", "node")
+        shutil.copytree(PATCH_PACKAGE, PACKAGE_PATH)
+        shutil.copy2(PATCH_NODE, NODE_PATH)
         self._init_patcher(mode="patch")
 
     def _unpatch(self):
@@ -32,17 +32,17 @@ class Activator:
         Core unpatcher, delete the patched files
         and replace it with the backuped files.
         """
-        config = load_config()
         PLAYWRIGHT_PATH = get_playwright_path()
+        PACKAGE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "package")
+        NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node")
+        BACKUP_PACKAGE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "package_1")
+        BACKUP_NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node_1")
 
-        for filename, filepath in config.items():
-            CURRENT_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, filename)
-            BACKUP_FILEPATH = os.path.join(PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}")
-            if not os.path.exists(BACKUP_FILEPATH):
-                continue
+        shutil.rmtree(PACKAGE_PATH)
+        os.remove(NODE_PATH)
 
-            os.remove(CURRENT_FILEPATH)
-            os.rename(BACKUP_FILEPATH, CURRENT_FILEPATH)
+        os.rename(BACKUP_PACKAGE_PATH, PACKAGE_PATH)
+        os.rename(BACKUP_NODE_PATH, NODE_PATH)
 
         self._init_patcher(mode="unpatch")
 
@@ -63,10 +63,6 @@ class Activator:
             return True, "Already active"
 
         self._patch()
-        patched, status_text = self.status()
-        if not patched and status_text != "Corrupted":
-            return False, f"{status_text} - Faled to activate"
-
         return True, "Activated"
 
     def deactivate(self):
@@ -77,38 +73,20 @@ class Activator:
 
         # Checked status
         patched, status_text = self.status()
-        if not patched and status_text != "Corrupted":
+        if not patched:
             return False, "Not activated"
 
         self._unpatch()
-        patched, status_text = self.status()
-        if patched and status_text != "Corrupted":
-            return False, f"{status_text}, Failed to deactivate"
-
         return True, "Deactivated"
 
     def status(self):
-
-        config = load_config()
         PLAYWRIGHT_PATH = get_playwright_path()
+        BACKUP_PACKAGE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "package_1")
+        BACKUP_NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node_1")
 
-        all_status = []
-
-        for filename, filepath in config.items():
-            BACKUP_FILEPATH = os.path.join(
-                PLAYWRIGHT_PATH, "driver", filepath, f"xdriver_{filename}"
-            )
-            if os.path.exists(BACKUP_FILEPATH):
-                all_status.append(True)
-                continue
-            all_status.append(False)
-
-        if all(all_status):
+        if os.path.exists(BACKUP_PACKAGE_PATH) or os.path.exists(BACKUP_NODE_PATH):
             return True, "Activated"
-
-        if not any(all_status):
-            return False, "Deactivated"
-        return False, "Corrupted"
+        return False, "Deactivated"
 
     def _init_patcher(self, mode):
         PLAYWRIGHT_PATH = get_playwright_path()

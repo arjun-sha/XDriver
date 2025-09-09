@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { ChildProcess } from 'child_process';
+import { EventEmitter } from 'events';
 import { Readable } from 'stream';
 import { ReadStream } from 'fs';
 import { Protocol } from './protocol';
@@ -2565,12 +2566,6 @@ export interface Page {
     colorScheme?: null|"light"|"dark"|"no-preference";
 
     /**
-     * Emulates `'prefers-contrast'` media feature, supported values are `'no-preference'`, `'more'`. Passing `null`
-     * disables contrast emulation.
-     */
-    contrast?: null|"no-preference"|"more";
-
-    /**
      * Emulates `'forced-colors'` media feature, supported values are `'active'` and `'none'`. Passing `null` disables
      * forced colors emulation.
      */
@@ -3614,6 +3609,8 @@ export interface Page {
   /**
    * Returns the PDF buffer.
    *
+   * **NOTE** Generating a pdf is currently only supported in Chromium headless.
+   *
    * `page.pdf()` generates a pdf of the page with `print` css media. To generate a pdf with `screen` media, call
    * [page.emulateMedia([options])](https://playwright.dev/docs/api/class-page#page-emulate-media) before calling
    * `page.pdf()`:
@@ -3974,9 +3971,9 @@ export interface Page {
    *
    * **NOTE** Enabling routing disables http cache.
    *
-   * @param url A glob pattern, regex pattern, or predicate that receives a [URL] to match during routing. If
-   * [`baseURL`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-base-url) is set in the
-   * context options and the provided URL is a string that does not start with `*`, it is resolved using the
+   * @param url A glob pattern, regex pattern or predicate receiving [URL] to match while routing. When a
+   * [`baseURL`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-base-url) via the context
+   * options was provided and the passed URL is a path, it gets merged via the
    * [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) constructor.
    * @param handler handler function to route the request.
    * @param options
@@ -4299,7 +4296,7 @@ export interface Page {
    * takes priority over
    * [page.setDefaultTimeout(timeout)](https://playwright.dev/docs/api/class-page#page-set-default-timeout).
    *
-   * @param timeout Maximum time in milliseconds. Pass `0` to disable timeout.
+   * @param timeout Maximum time in milliseconds
    */
   setDefaultTimeout(timeout: number): void;
 
@@ -8964,13 +8961,9 @@ export interface BrowserContext {
   /**
    * Grants specified permissions to the browser context. Only grants corresponding permissions to the given origin if
    * specified.
-   * @param permissions A list of permissions to grant.
-   *
-   * **NOTE** Supported permissions differ between browsers, and even between different versions of the same browser.
-   * Any permission may stop working after an update.
-   *
-   * Here are some permissions that may be supported by some browsers:
+   * @param permissions A permission or an array of permissions to grant. Permissions can be one of the following values:
    * - `'accelerometer'`
+   * - `'accessibility-events'`
    * - `'ambient-light-sensor'`
    * - `'background-sync'`
    * - `'camera'`
@@ -9068,9 +9061,9 @@ export interface BrowserContext {
    *
    * **NOTE** Enabling routing disables http cache.
    *
-   * @param url A glob pattern, regex pattern, or predicate that receives a [URL] to match during routing. If
-   * [`baseURL`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-base-url) is set in the
-   * context options and the provided URL is a string that does not start with `*`, it is resolved using the
+   * @param url A glob pattern, regex pattern or predicate receiving [URL] to match while routing. When a
+   * [`baseURL`](https://playwright.dev/docs/api/class-browser#browser-new-context-option-base-url) via the context
+   * options was provided and the passed URL is a path, it gets merged via the
    * [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) constructor.
    * @param handler handler function to route the request.
    * @param options
@@ -9198,7 +9191,7 @@ export interface BrowserContext {
    * take priority over
    * [browserContext.setDefaultTimeout(timeout)](https://playwright.dev/docs/api/class-browsercontext#browser-context-set-default-timeout).
    *
-   * @param timeout Maximum time in milliseconds. Pass `0` to disable timeout.
+   * @param timeout Maximum time in milliseconds
    */
   setDefaultTimeout(timeout: number): void;
 
@@ -9265,18 +9258,10 @@ export interface BrowserContext {
   setOffline(offline: boolean): Promise<void>;
 
   /**
-   * Returns storage state for this browser context, contains current cookies, local storage snapshot and IndexedDB
-   * snapshot.
+   * Returns storage state for this browser context, contains current cookies and local storage snapshot.
    * @param options
    */
   storageState(options?: {
-    /**
-     * Set to `true` to include [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) in the storage
-     * state snapshot. If your application uses IndexedDB to store authentication tokens, like Firebase Authentication,
-     * enable this.
-     */
-    indexedDB?: boolean;
-
     /**
      * The file path to save the storage state to. If
      * [`path`](https://playwright.dev/docs/api/class-browsercontext#browser-context-storage-state-option-path) is a
@@ -9602,11 +9587,10 @@ export interface Browser {
    * In case this browser is connected to, clears all created contexts belonging to this browser and disconnects from
    * the browser server.
    *
-   * **NOTE** This is similar to force-quitting the browser. To close pages gracefully and ensure you receive page close
-   * events, call
+   * **NOTE** This is similar to force quitting the browser. Therefore, you should call
    * [browserContext.close([options])](https://playwright.dev/docs/api/class-browsercontext#browser-context-close) on
-   * any [BrowserContext](https://playwright.dev/docs/api/class-browsercontext) instances you explicitly created earlier
-   * using [browser.newContext([options])](https://playwright.dev/docs/api/class-browser#browser-new-context) **before**
+   * any [BrowserContext](https://playwright.dev/docs/api/class-browsercontext)'s you explicitly created earlier with
+   * [browser.newContext([options])](https://playwright.dev/docs/api/class-browser#browser-new-context) **before**
    * calling [browser.close([options])](https://playwright.dev/docs/api/class-browser#browser-close).
    *
    * The [Browser](https://playwright.dev/docs/api/class-browser) object itself is considered to be disposed and cannot
@@ -9782,13 +9766,6 @@ export interface Browser {
      * Passing `null` resets emulation to system defaults. Defaults to `'light'`.
      */
     colorScheme?: null|"light"|"dark"|"no-preference";
-
-    /**
-     * Emulates `'prefers-contrast'` media feature, supported values are `'no-preference'`, `'more'`. See
-     * [page.emulateMedia([options])](https://playwright.dev/docs/api/class-page#page-emulate-media) for more details.
-     * Passing `null` resets emulation to system defaults. Defaults to `'no-preference'`.
-     */
-    contrast?: null|"no-preference"|"more";
 
     /**
      * Specify device scale factor (can be thought of as dpr). Defaults to `1`. Learn more about
@@ -10069,12 +10046,12 @@ export interface Browser {
         sameSite: "Strict"|"Lax"|"None";
       }>;
 
+      /**
+       * localStorage to set for context
+       */
       origins: Array<{
         origin: string;
 
-        /**
-         * localStorage to set for context
-         */
         localStorage: Array<{
           name: string;
 
@@ -11647,8 +11624,7 @@ export interface ElementHandle<T=Node> extends JSHandle<T> {
      * Specify locators that should be masked when the screenshot is taken. Masked elements will be overlaid with a pink
      * box `#FF00FF` (customized by
      * [`maskColor`](https://playwright.dev/docs/api/class-elementhandle#element-handle-screenshot-option-mask-color))
-     * that completely covers its bounding box. The mask is also applied to invisible elements, see
-     * [Matching only visible elements](https://playwright.dev/docs/locators#matching-only-visible-elements) to disable that.
+     * that completely covers its bounding box.
      */
     mask?: Array<Locator>;
 
@@ -12197,6 +12173,12 @@ export interface Locator {
    * rejects, this method throws.
    *
    * **Usage**
+   *
+   * ```js
+   * const tweets = page.locator('.tweet .retweets');
+   * expect(await tweets.evaluate(node => node.innerText)).toBe('10 retweets');
+   * ```
+   *
    * @param pageFunction Function to be evaluated in the page context.
    * @param arg Optional argument to pass to
    * [`pageFunction`](https://playwright.dev/docs/api/class-locator#locator-evaluate-option-expression).
@@ -12222,6 +12204,12 @@ export interface Locator {
    * rejects, this method throws.
    *
    * **Usage**
+   *
+   * ```js
+   * const tweets = page.locator('.tweet .retweets');
+   * expect(await tweets.evaluate(node => node.innerText)).toBe('10 retweets');
+   * ```
+   *
    * @param pageFunction Function to be evaluated in the page context.
    * @param arg Optional argument to pass to
    * [`pageFunction`](https://playwright.dev/docs/api/class-locator#locator-evaluate-option-expression).
@@ -12478,12 +12466,6 @@ export interface Locator {
    * @param options
    */
   ariaSnapshot(options?: {
-    /**
-     * Generate symbolic reference for each element. One can use `aria-ref=<ref>` locator immediately after capturing the
-     * snapshot to perform actions on the element.
-     */
-    ref?: boolean;
-
     /**
      * Maximum time in milliseconds. Defaults to `0` - no timeout. The default value can be changed via `actionTimeout`
      * option in the config, or by using the
@@ -12930,6 +12912,7 @@ export interface Locator {
    * live objects to be passed into the event:
    *
    * ```js
+   * // Note you can only create DataTransfer in Chromium and Firefox
    * const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
    * await locator.dispatchEvent('dragstart', { dataTransfer });
    * ```
@@ -13126,11 +13109,6 @@ export interface Locator {
      * `<article><div>Playwright</div></article>`.
      */
     hasText?: string|RegExp;
-
-    /**
-     * Only matches visible or invisible elements.
-     */
-    visible?: boolean;
   }): Locator;
 
   /**
@@ -13698,9 +13676,7 @@ export interface Locator {
   }): Promise<boolean>;
 
   /**
-   * Returns whether the element is [editable](https://playwright.dev/docs/actionability#editable). If the target element is not an `<input>`,
-   * `<textarea>`, `<select>`, `[contenteditable]` and does not have a role allowing `[aria-readonly]`, this method
-   * throws an error.
+   * Returns whether the element is [editable](https://playwright.dev/docs/actionability#editable).
    *
    * **NOTE** If you need to assert that an element is editable, prefer
    * [expect(locator).toBeEditable([options])](https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-editable)
@@ -13872,22 +13848,18 @@ export interface Locator {
   /**
    * Creates a locator matching all elements that match one or both of the two locators.
    *
-   * Note that when both locators match something, the resulting locator will have multiple matches, potentially causing
-   * a [locator strictness](https://playwright.dev/docs/locators#strictness) violation.
+   * Note that when both locators match something, the resulting locator will have multiple matches and violate
+   * [locator strictness](https://playwright.dev/docs/locators#strictness) guidelines.
    *
    * **Usage**
    *
    * Consider a scenario where you'd like to click on a "New email" button, but sometimes a security settings dialog
    * shows up instead. In this case, you can wait for either a "New email" button, or a dialog and act accordingly.
    *
-   * **NOTE** If both "New email" button and security dialog appear on screen, the "or" locator will match both of them,
-   * possibly throwing the ["strict mode violation" error](https://playwright.dev/docs/locators#strictness). In this case, you can use
-   * [locator.first()](https://playwright.dev/docs/api/class-locator#locator-first) to only match one of them.
-   *
    * ```js
    * const newEmail = page.getByRole('button', { name: 'New' });
    * const dialog = page.getByText('Confirm security settings');
-   * await expect(newEmail.or(dialog).first()).toBeVisible();
+   * await expect(newEmail.or(dialog)).toBeVisible();
    * if (await dialog.isVisible())
    *   await page.getByRole('button', { name: 'Dismiss' }).click();
    * await newEmail.click();
@@ -14082,9 +14054,9 @@ export interface Locator {
    *
    * ```html
    * <select multiple>
-   *   <option value="red">Red</option>
-   *   <option value="green">Green</option>
-   *   <option value="blue">Blue</option>
+   *   <option value="red">Red</div>
+   *   <option value="green">Green</div>
+   *   <option value="blue">Blue</div>
    * </select>
    * ```
    *
@@ -14333,8 +14305,7 @@ export interface Locator {
   }): Promise<void>;
 
   /**
-   * Perform a tap gesture on the element matching the locator. For examples of emulating other gestures by manually
-   * dispatching touch events, see the [emulating legacy touch events](https://playwright.dev/docs/touch-events) page.
+   * Perform a tap gesture on the element matching the locator.
    *
    * **Details**
    *
@@ -14587,11 +14558,6 @@ export interface BrowserType<Unused = {}> {
    *
    * **NOTE** Connecting over the Chrome DevTools Protocol is only supported for Chromium-based browsers.
    *
-   * **NOTE** This connection is significantly lower fidelity than the Playwright protocol connection via
-   * [browserType.connect(wsEndpoint[, options])](https://playwright.dev/docs/api/class-browsertype#browser-type-connect).
-   * If you are experiencing issues or attempting to use advanced functionality, you probably want to use
-   * [browserType.connect(wsEndpoint[, options])](https://playwright.dev/docs/api/class-browsertype#browser-type-connect).
-   *
    * **Usage**
    *
    * ```js
@@ -14617,11 +14583,6 @@ export interface BrowserType<Unused = {}> {
    *
    * **NOTE** Connecting over the Chrome DevTools Protocol is only supported for Chromium-based browsers.
    *
-   * **NOTE** This connection is significantly lower fidelity than the Playwright protocol connection via
-   * [browserType.connect(wsEndpoint[, options])](https://playwright.dev/docs/api/class-browsertype#browser-type-connect).
-   * If you are experiencing issues or attempting to use advanced functionality, you probably want to use
-   * [browserType.connect(wsEndpoint[, options])](https://playwright.dev/docs/api/class-browsertype#browser-type-connect).
-   *
    * **Usage**
    *
    * ```js
@@ -14636,12 +14597,10 @@ export interface BrowserType<Unused = {}> {
    */
   connectOverCDP(options: ConnectOverCDPOptions & { wsEndpoint?: string }): Promise<Browser>;
   /**
-   * This method attaches Playwright to an existing browser instance created via `BrowserType.launchServer` in Node.js.
-   *
-   * **NOTE** The major and minor version of the Playwright instance that connects needs to match the version of
-   * Playwright that launches the browser (1.2.3 → is compatible with 1.2.x).
-   *
-   * @param wsEndpoint A Playwright browser websocket endpoint to connect to. You obtain this endpoint via `BrowserServer.wsEndpoint`.
+   * This method attaches Playwright to an existing browser instance. When connecting to another browser launched via
+   * `BrowserType.launchServer` in Node.js, the major and minor version needs to match the client version (1.2.3 → is
+   * compatible with 1.2.x).
+   * @param wsEndpoint A browser websocket endpoint to connect to.
    * @param options
    */
   connect(wsEndpoint: string, options?: ConnectOptions): Promise<Browser>;
@@ -14652,12 +14611,10 @@ export interface BrowserType<Unused = {}> {
    * @deprecated
    */
   /**
-   * This method attaches Playwright to an existing browser instance created via `BrowserType.launchServer` in Node.js.
-   *
-   * **NOTE** The major and minor version of the Playwright instance that connects needs to match the version of
-   * Playwright that launches the browser (1.2.3 → is compatible with 1.2.x).
-   *
-   * @param wsEndpoint A Playwright browser websocket endpoint to connect to. You obtain this endpoint via `BrowserServer.wsEndpoint`.
+   * This method attaches Playwright to an existing browser instance. When connecting to another browser launched via
+   * `BrowserType.launchServer` in Node.js, the major and minor version needs to match the client version (1.2.3 → is
+   * compatible with 1.2.x).
+   * @param wsEndpoint A browser websocket endpoint to connect to.
    * @param options
    */
   connect(options: ConnectOptions & { wsEndpoint?: string }): Promise<Browser>;
@@ -14707,15 +14664,11 @@ export interface BrowserType<Unused = {}> {
    * Launches browser that uses persistent storage located at
    * [`userDataDir`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-persistent-context-option-user-data-dir)
    * and returns the only context. Closing this context will automatically close the browser.
-   * @param userDataDir Path to a User Data Directory, which stores browser session data like cookies and local storage. Pass an empty
-   * string to create a temporary directory.
-   *
-   * More details for
+   * @param userDataDir Path to a User Data Directory, which stores browser session data like cookies and local storage. More details for
    * [Chromium](https://chromium.googlesource.com/chromium/src/+/master/docs/user_data_dir.md#introduction) and
-   * [Firefox](https://wiki.mozilla.org/Firefox/CommandLineOptions#User_profile). Chromium's user data directory is the
-   * **parent** directory of the "Profile Path" seen at `chrome://version`.
-   *
-   * Note that browsers do not allow launching multiple instances with the same User Data Directory.
+   * [Firefox](https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options#User_Profile). Note that Chromium's
+   * user data directory is the **parent** directory of the "Profile Path" seen at `chrome://version`. Pass an empty
+   * string to use a temporary directory instead.
    * @param options
    */
   launchPersistentContext(userDataDir: string, options?: {
@@ -14756,12 +14709,9 @@ export interface BrowserType<Unused = {}> {
     bypassCSP?: boolean;
 
     /**
-     * Browser distribution channel.
-     *
-     * Use "chromium" to [opt in to new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode).
-     *
-     * Use "chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", or
-     * "msedge-canary" to use branded [Google Chrome and Microsoft Edge](https://playwright.dev/docs/browsers#google-chrome--microsoft-edge).
+     * Browser distribution channel.  Supported values are "chrome", "chrome-beta", "chrome-dev", "chrome-canary",
+     * "msedge", "msedge-beta", "msedge-dev", "msedge-canary". Read more about using
+     * [Google Chrome and Microsoft Edge](https://playwright.dev/docs/browsers#google-chrome--microsoft-edge).
      */
     channel?: string;
 
@@ -14833,13 +14783,6 @@ export interface BrowserType<Unused = {}> {
      * Passing `null` resets emulation to system defaults. Defaults to `'light'`.
      */
     colorScheme?: null|"light"|"dark"|"no-preference";
-
-    /**
-     * Emulates `'prefers-contrast'` media feature, supported values are `'no-preference'`, `'more'`. See
-     * [page.emulateMedia([options])](https://playwright.dev/docs/api/class-page#page-emulate-media) for more details.
-     * Passing `null` resets emulation to system defaults. Defaults to `'no-preference'`.
-     */
-    contrast?: null|"no-preference"|"more";
 
     /**
      * Specify device scale factor (can be thought of as dpr). Defaults to `1`. Learn more about
@@ -14934,7 +14877,7 @@ export interface BrowserType<Unused = {}> {
     /**
      * Whether to run browser in headless mode. More details for
      * [Chromium](https://developers.google.com/web/updates/2017/04/headless-chrome) and
-     * [Firefox](https://hacks.mozilla.org/2017/12/using-headless-mode-in-firefox/). Defaults to `true` unless the
+     * [Firefox](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Headless_mode). Defaults to `true` unless the
      * [`devtools`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-devtools) option is
      * `true`.
      */
@@ -15262,12 +15205,9 @@ export interface BrowserType<Unused = {}> {
     args?: Array<string>;
 
     /**
-     * Browser distribution channel.
-     *
-     * Use "chromium" to [opt in to new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode).
-     *
-     * Use "chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", or
-     * "msedge-canary" to use branded [Google Chrome and Microsoft Edge](https://playwright.dev/docs/browsers#google-chrome--microsoft-edge).
+     * Browser distribution channel.  Supported values are "chrome", "chrome-beta", "chrome-dev", "chrome-canary",
+     * "msedge", "msedge-beta", "msedge-dev", "msedge-canary". Read more about using
+     * [Google Chrome and Microsoft Edge](https://playwright.dev/docs/browsers#google-chrome--microsoft-edge).
      */
     channel?: string;
 
@@ -15328,7 +15268,7 @@ export interface BrowserType<Unused = {}> {
     /**
      * Whether to run browser in headless mode. More details for
      * [Chromium](https://developers.google.com/web/updates/2017/04/headless-chrome) and
-     * [Firefox](https://hacks.mozilla.org/2017/12/using-headless-mode-in-firefox/). Defaults to `true` unless the
+     * [Firefox](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Headless_mode). Defaults to `true` unless the
      * [`devtools`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-devtools) option is
      * `true`.
      */
@@ -16654,11 +16594,9 @@ export interface AndroidDevice {
     colorScheme?: null|"light"|"dark"|"no-preference";
 
     /**
-     * Emulates `'prefers-contrast'` media feature, supported values are `'no-preference'`, `'more'`. See
-     * [page.emulateMedia([options])](https://playwright.dev/docs/api/class-page#page-emulate-media) for more details.
-     * Passing `null` resets emulation to system defaults. Defaults to `'no-preference'`.
+     * Optional package name to launch instead of default Chrome for Android.
      */
-    contrast?: null|"no-preference"|"more";
+    command?: string;
 
     /**
      * Specify device scale factor (can be thought of as dpr). Defaults to `1`. Learn more about
@@ -16767,11 +16705,6 @@ export interface AndroidDevice {
      * for more details. Defaults to none.
      */
     permissions?: Array<string>;
-
-    /**
-     * Optional package name to launch instead of default Chrome for Android.
-     */
-    pkg?: string;
 
     /**
      * Network proxy settings.
@@ -17536,12 +17469,6 @@ export interface APIRequest {
     extraHTTPHeaders?: { [key: string]: string; };
 
     /**
-     * Whether to throw on response codes other than 2xx and 3xx. By default response object is returned for all status
-     * codes.
-     */
-    failOnStatusCode?: boolean;
-
-    /**
      * Credentials for [HTTP authentication](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication). If no
      * origin is specified, the username and password are sent to any servers upon unauthorized responses.
      */
@@ -17569,13 +17496,6 @@ export interface APIRequest {
      * Whether to ignore HTTPS errors when sending network requests. Defaults to `false`.
      */
     ignoreHTTPSErrors?: boolean;
-
-    /**
-     * Maximum number of request redirects that will be followed automatically. An error will be thrown if the number is
-     * exceeded. Defaults to `20`. Pass `0` to not follow redirects. This can be overwritten for each request
-     * individually.
-     */
-    maxRedirects?: number;
 
     /**
      * Network proxy settings.
@@ -18418,11 +18338,6 @@ export interface APIRequestContext {
    */
   storageState(options?: {
     /**
-     * Set to `true` to include IndexedDB in the storage state snapshot.
-     */
-    indexedDB?: boolean;
-
-    /**
      * The file path to save the storage state to. If
      * [`path`](https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-storage-state-option-path) is
      * a relative path, then it is resolved relative to current working directory. If no path is provided, storage state
@@ -18663,19 +18578,6 @@ export interface Clock {
    * ```js
    * await page.clock.pauseAt(new Date('2020-02-02'));
    * await page.clock.pauseAt('2020-02-02');
-   * ```
-   *
-   * For best results, install the clock before navigating the page and set it to a time slightly before the intended
-   * test time. This ensures that all timers run normally during page loading, preventing the page from getting stuck.
-   * Once the page has fully loaded, you can safely use
-   * [clock.pauseAt(time)](https://playwright.dev/docs/api/class-clock#clock-pause-at) to pause the clock.
-   *
-   * ```js
-   * // Initialize clock with some time before the test time and let the page load
-   * // naturally. `Date.now` will progress as the timers fire.
-   * await page.clock.install({ time: new Date('2024-12-10T08:00:00') });
-   * await page.goto('http://localhost:3333');
-   * await page.clock.pauseAt(new Date('2024-12-10T10:00:00'));
    * ```
    *
    * @param time Time to pause at.
@@ -20783,11 +20685,6 @@ export interface Route {
    * request to the network, other matching handlers won't be invoked. Use
    * [route.fallback([options])](https://playwright.dev/docs/api/class-route#route-fallback) If you want next matching
    * handler in the chain to be invoked.
-   *
-   * **NOTE** The `Cookie` header cannot be overridden using this method. If a value is provided, it will be ignored,
-   * and the cookie will be loaded from the browser's cookie store. To set custom cookies, use
-   * [browserContext.addCookies(cookies)](https://playwright.dev/docs/api/class-browsercontext#browser-context-add-cookies).
-   *
    * @param options
    */
   continue(options?: {
@@ -21125,9 +21022,6 @@ export interface Selectors {
 /**
  * The Touchscreen class operates in main-frame CSS pixels relative to the top-left corner of the viewport. Methods on
  * the touchscreen can only be used in browser contexts that have been initialized with `hasTouch` set to true.
- *
- * This class is limited to emulating tap gestures. For examples of other gestures simulated by manually dispatching
- * touch events, see the [emulating legacy touch events](https://playwright.dev/docs/touch-events) page.
  */
 export interface Touchscreen {
   /**
@@ -21378,11 +21272,8 @@ export interface WebError {
 }
 
 /**
- * The [WebSocket](https://playwright.dev/docs/api/class-websocket) class represents WebSocket connections within a
- * page. It provides the ability to inspect and manipulate the data being transmitted and received.
- *
- * If you want to intercept or modify WebSocket frames, consider using
- * [WebSocketRoute](https://playwright.dev/docs/api/class-websocketroute).
+ * The [WebSocket](https://playwright.dev/docs/api/class-websocket) class represents websocket connections in the
+ * page.
  */
 export interface WebSocket {
   /**
@@ -21649,12 +21540,9 @@ export interface LaunchOptions {
   args?: Array<string>;
 
   /**
-   * Browser distribution channel.
-   *
-   * Use "chromium" to [opt in to new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode).
-   *
-   * Use "chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", or
-   * "msedge-canary" to use branded [Google Chrome and Microsoft Edge](https://playwright.dev/docs/browsers#google-chrome--microsoft-edge).
+   * Browser distribution channel.  Supported values are "chrome", "chrome-beta", "chrome-dev", "chrome-canary",
+   * "msedge", "msedge-beta", "msedge-dev", "msedge-canary". Read more about using
+   * [Google Chrome and Microsoft Edge](https://playwright.dev/docs/browsers#google-chrome--microsoft-edge).
    */
   channel?: string;
 
@@ -21715,7 +21603,7 @@ export interface LaunchOptions {
   /**
    * Whether to run browser in headless mode. More details for
    * [Chromium](https://developers.google.com/web/updates/2017/04/headless-chrome) and
-   * [Firefox](https://hacks.mozilla.org/2017/12/using-headless-mode-in-firefox/). Defaults to `true` unless the
+   * [Firefox](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Headless_mode). Defaults to `true` unless the
    * [`devtools`](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-devtools) option is
    * `true`.
    */
@@ -21867,8 +21755,7 @@ export interface LocatorScreenshotOptions {
    * Specify locators that should be masked when the screenshot is taken. Masked elements will be overlaid with a pink
    * box `#FF00FF` (customized by
    * [`maskColor`](https://playwright.dev/docs/api/class-locator#locator-screenshot-option-mask-color)) that completely
-   * covers its bounding box. The mask is also applied to invisible elements, see
-   * [Matching only visible elements](https://playwright.dev/docs/locators#matching-only-visible-elements) to disable that.
+   * covers its bounding box.
    */
   mask?: Array<Locator>;
 
@@ -22046,13 +21933,6 @@ export interface BrowserContextOptions {
    * Passing `null` resets emulation to system defaults. Defaults to `'light'`.
    */
   colorScheme?: null|"light"|"dark"|"no-preference";
-
-  /**
-   * Emulates `'prefers-contrast'` media feature, supported values are `'no-preference'`, `'more'`. See
-   * [page.emulateMedia([options])](https://playwright.dev/docs/api/class-page#page-emulate-media) for more details.
-   * Passing `null` resets emulation to system defaults. Defaults to `'no-preference'`.
-   */
-  contrast?: null|"no-preference"|"more";
 
   /**
    * Specify device scale factor (can be thought of as dpr). Defaults to `1`. Learn more about
@@ -22300,12 +22180,12 @@ export interface BrowserContextOptions {
       sameSite: "Strict"|"Lax"|"None";
     }>;
 
+    /**
+     * localStorage to set for context
+     */
     origins: Array<{
       origin: string;
 
-      /**
-       * localStorage to set for context
-       */
       localStorage: Array<{
         name: string;
 
@@ -22533,8 +22413,7 @@ export interface PageScreenshotOptions {
    * Specify locators that should be masked when the screenshot is taken. Masked elements will be overlaid with a pink
    * box `#FF00FF` (customized by
    * [`maskColor`](https://playwright.dev/docs/api/class-page#page-screenshot-option-mask-color)) that completely covers
-   * its bounding box. The mask is also applied to invisible elements, see
-   * [Matching only visible elements](https://playwright.dev/docs/locators#matching-only-visible-elements) to disable that.
+   * its bounding box.
    */
   mask?: Array<Locator>;
 
