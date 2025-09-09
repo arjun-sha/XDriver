@@ -17,6 +17,7 @@ with open(os.path.join(BASE_DIR, "README.md")) as f:
 
 setup(
     name="x_driver",
+    version="1.0.1",
     author="Arjun Shankar",
     author_email="arjun.sha2425@gmail.com",
     description="Patched playwright driver for block free web scraping!",
@@ -28,6 +29,5 @@ setup(
     long_description_content_type="text/markdown",
     install_requires=requirements,
     keywords=["Playwright", "Cloudflare", "Kasada", "Datadome"],
-    version=version,
     entry_points={"console_scripts": ["x_driver=x_driver.__main__:activator"]},
 )
