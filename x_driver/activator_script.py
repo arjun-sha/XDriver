@@ -18,13 +18,13 @@ class Activator:
         BACKUP_PACKAGE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "package_1")
         BACKUP_NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node_1")
         os.rename(PACKAGE_PATH, BACKUP_PACKAGE_PATH)
-        os.rename(NODE_PATH, BACKUP_NODE_PATH)
+        # os.rename(NODE_PATH, BACKUP_NODE_PATH)
 
         CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
         PATCH_PACKAGE = os.path.join(CURRENT_DIR, "bundles", "package")
         PATCH_NODE = os.path.join(CURRENT_DIR, "bundles", "node")
         shutil.copytree(PATCH_PACKAGE, PACKAGE_PATH)
-        shutil.copy2(PATCH_NODE, NODE_PATH)
+        # shutil.copy2(PATCH_NODE, NODE_PATH)
         self._init_patcher(mode="patch")
 
     def _unpatch(self):
@@ -39,10 +39,10 @@ class Activator:
         BACKUP_NODE_PATH = os.path.join(PLAYWRIGHT_PATH, "driver", "node_1")
 
         shutil.rmtree(PACKAGE_PATH)
-        os.remove(NODE_PATH)
+        # os.remove(NODE_PATH)
 
         os.rename(BACKUP_PACKAGE_PATH, PACKAGE_PATH)
-        os.rename(BACKUP_NODE_PATH, NODE_PATH)
+        # os.rename(BACKUP_NODE_PATH, NODE_PATH)
 
         self._init_patcher(mode="unpatch")
 
