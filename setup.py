@@ -5,7 +5,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # Version
 with open(os.path.join(BASE_DIR, "VERSION.txt")) as f:
-    f.read().strip()
+    version = f.read().strip()
 
 # Read requirements.txt
 with open(os.path.join(BASE_DIR, "requirements.txt")) as f:
