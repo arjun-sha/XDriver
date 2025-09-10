@@ -56,7 +56,13 @@
 You can install **XDriver** using `pip`:
 
 ```shell
-$ pip install git+https://github.com/arjun-sha/XDriver.git@v1.0.0
+$ pip install git+https://github.com/arjun-sha/XDriver.git@v1.0.1
+```
+
+for windows run this before installing
+
+```shell
+set PYTHONUTF8=1
 ```
 
 ### Activate XDriver
